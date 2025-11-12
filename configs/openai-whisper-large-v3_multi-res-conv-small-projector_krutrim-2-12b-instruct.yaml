@@ -1,0 +1,54 @@
+# Paths
+paths:
+  checkpoints_dir: "checkpoints"
+  artifacts_dir: "checkpoints/artifacts"
+  data_dir: "./data" 
+  train_data: "indicsuperb-manifests/hindi_train.jsonl"
+  valid_data: "indicsuperb-manifests/hindi_valid.jsonl"
+  list_of_test_manifest_files:
+    - "indicsuperb-manifests/hindi_noisy_test.jsonl"
+    - "indicsuperb-manifests/hindi_noisy_test_known.jsonl"
+    - "indicsuperb-manifests/hindi_test.jsonl"
+    - "indicsuperb-manifests/hindi_test_known.jsonl"
+
+language: "hindi"
+
+# Training parameters
+training:
+  num_epochs: 10
+  num_steps: 1000000
+  gradient_accumulation_steps: 2
+  warmup_steps: 1000
+  learning_rate: 0.0001 # 1e-4
+  weight_decay: 0.0
+  batch_size: 6
+  num_workers: 8
+  validation_frequency: 10000
+  resume_from_checkpoint: false
+
+# Model parameters
+model:
+  speech_encoder_name: "openai-whisper-large-v3"
+  llm_name: "krutrim-2-12b-instruct"
+  adapter_name: "multi-res-conv-small-projector"
+  mel_size: 128
+  fix_length_audio: -1
+  fix_audio_duration: 30 # all whisper based models need audios with fixed duration of 30 seconds
+  normalize: true
+  input_type: "mel"
+  prompt: "Transcribe speech to hindi text in devanagari script. Do not add any other text. "
+  target_column: "processed_target"
+
+# Environment variables
+env:
+  tokenizers_parallelism: "true"
+  cuda_visible_devices: "0"
+  wandb_mode: "offline"
+
+# Wandb configuration
+wandb:
+  name: "hindi__openai-whisper-large-v3_multi-res-conv-small-projector_krutrim-2-12b-instruct"
+
+inference:
+  batch_size: 1
+  num_workers: 1
