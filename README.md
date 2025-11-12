@@ -1,4 +1,4 @@
-# adaspeech-supplementary-aaai26
+# adaspeech
 
 The following workflow has been tested on an Ubuntu 20.04 LTS machine with 256 GB RAM and an NVIDIA H100 GPU (80GB VRAM).
 
