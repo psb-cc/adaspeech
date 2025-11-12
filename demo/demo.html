@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdaSpeech: Multiresolution Modality Adaptation for ASR in Hindi</title>
+    
+    <!-- MathJax for LaTeX rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- Google Fonts for Hindi -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600&family=Mukta:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid #4a90e2;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .authors {
+            font-size: 1.3em;
+            color: #555;
+            margin-bottom: 15px;
+        }
+        
+        .affiliation {
+            font-size: 1.1em;
+            color: #777;
+            font-style: italic;
+        }
+        
+        .sample-section {
+            margin-bottom: 60px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #4a90e2;
+        }
+        
+        .sample-header {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .audio-container {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        audio {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: #4a90e2;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .model-name {
+            font-weight: 600;
+            color: #2c3e50;
+            min-width: 200px;
+            vertical-align: top;
+        }
+        
+        .transcript {
+            font-family: 'Hind', 'Mukta', 'Noto Sans Devanagari', 'Arial Unicode MS', sans-serif;
+            color: #555;
+            line-height: 2;
+            direction: ltr;
+            font-size: 1.15em;
+        }
+        
+        .ground-truth {
+            background: #e8f5e9;
+            font-weight: 600;
+        }
+        
+        .model-highlight {
+            background: #fff3cd;
+        }
+        
+        .ground-truth-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+        }
+        
+        .gt-label {
+            font-weight: 700;
+            color: #2e7d32;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .gt-text {
+            font-family: 'Hind', 'Mukta', 'Noto Sans Devanagari', 'Arial Unicode MS', sans-serif;
+            color: #1b5e20;
+            line-height: 2;
+            font-size: 1.3em;
+            font-weight: 500;
+        }
+        
+        .predictions-label {
+            font-weight: 600;
+            color: #555;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .authors {
+                font-size: 1.1em;
+            }
+            
+            table {
+                font-size: 0.9em;
+            }
+            
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AdaSpeech: Multiresolution Modality Adaptation for ASR in Hindi</h1>
+            <div class="authors">
+                Puneet Singh Bhooi, Vinayak Abrol
+            </div>
+            <div class="affiliation">
+                CSE Department and Infosys Center for AI, IIIT Delhi, New Delhi 110020, India
+            </div>
+        </header>
+        
+        <!-- Sample 1 -->
+        <div class="sample-section">
+            <div class="sample-header">Sample 1</div>
+            <div class="audio-container">
+                <audio controls>
+                    <source src="844424933483599-705-m.wav" type="audio/wav">
+                    Your browser does not support the audio element.
+                </audio>
+                
+                <div class="ground-truth-box">
+                    <div class="gt-label">Ground Truth</div>
+                    <div class="gt-text">जलसेना की ओर भी विशेष ध्यान दिया जाता था</div>
+                </div>
+                
+                <div class="predictions-label">Model Predictions</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Prediction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="model-highlight">
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}}\)</td>
+                            <td class="transcript">जलसेना की ओर भी विशेष ध्यान दिया जाता था</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}} + \mathrm{LoRA}\)</td>
+                            <td class="transcript">जल सेना की ओर भी ध्यान दिया जाता था</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}} + \mathrm{Prefix\,Tuning}\)</td>
+                            <td class="transcript">जल सेना की ओर भी से ध्यान दिया जाता था</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{WLV3}\text{-}\mathrm{SLN_{large}}\text{-}\mathrm{Kr2_{it}}\)</td>
+                            <td class="transcript">जल सेना की यूरोप से ध्यान दिया जाता था</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{Whisper\text{-}Large\text{-}v3}\,(\mathrm{Decoder\,only\,FT})\)</td>
+                            <td class="transcript">जल सेना की ओर भी से ध्यान दिया जाता था</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Sample 2 -->
+        <div class="sample-section">
+            <div class="sample-header">Sample 2</div>
+            <div class="audio-container">
+                <audio controls>
+                    <source src="844424932410132-267-f.wav" type="audio/wav">
+                    Your browser does not support the audio element.
+                </audio>
+                
+                <div class="ground-truth-box">
+                    <div class="gt-label">Ground Truth</div>
+                    <div class="gt-text">वेंडरबिल्ट चिल्ड्रेन हॉस्पिटल में पहुंचने के बाद उनकी मृत्यु हो गई</div>
+                </div>
+                
+                <div class="predictions-label">Model Predictions</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Prediction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="model-highlight">
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}}\)</td>
+                            <td class="transcript">वेंडरबिल्ट चिल्ड्रेन हॉस्पिटल में पहुंचने के बाद उनकी मृत्यु हो गई</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}} + \mathrm{LoRA}\)</td>
+                            <td class="transcript">वेंडरबिंट चिल्ड्रन हॉस्पिटल में पहुंचने के बाद उनकी मृत्यु हो गई</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}} + \mathrm{Prefix\,Tuning}\)</td>
+                            <td class="transcript">वेंडरबिल्ट चिल्ड्रन हॉस्पिटल में पहुंचने के बाद उनकी मृत्यु हो गई</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{WLV3}\text{-}\mathrm{SLN_{large}}\text{-}\mathrm{Kr2_{it}}\)</td>
+                            <td class="transcript">वेंडरबिल्ड चिल्ड्रन हॉस्पिटल में पहुंचने के बाद उनकी मृत्यु हो गई</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{Whisper\text{-}Large\text{-}v3}\,(\mathrm{Decoder\,only\,FT})\)</td>
+                            <td class="transcript">वेंडरबिंड चिंड्र्न हॉस्पिटल में पहुंचने के बाद उनकी मृत्यु हो गई</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Sample 3 -->
+        <div class="sample-section">
+            <div class="sample-header">Sample 3</div>
+            <div class="audio-container">
+                <audio controls>
+                    <source src="844424930898552-590-f.wav" type="audio/wav">
+                    Your browser does not support the audio element.
+                </audio>
+                
+                <div class="ground-truth-box">
+                    <div class="gt-label">Ground Truth</div>
+                    <div class="gt-text">पत्रकारिता के सबसे रोमांचक और तनावपूर्ण बीट्स में से एक पर रिपोर्टिंग</div>
+                </div>
+                
+                <div class="predictions-label">Model Predictions</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Prediction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="model-highlight">
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}}\)</td>
+                            <td class="transcript">पत्रकारिता के सबसे रोमांचक और तनावपूर्ण बीट्स में से एक पर रिपोर्टिंग</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}} + \mathrm{LoRA}\)</td>
+                            <td class="transcript">पत्रकारिता के सबसे रोमांचक और तनावपूर्ण बीड्स में से एक पर रिपोर्टिंग</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}} + \mathrm{Prefix\,Tuning}\)</td>
+                            <td class="transcript">पत्रकारिता के सबसे रोमांचक और तनावपूर्ण बीट्स में से एक पर रिपोर्टिंग</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{WLV3}\text{-}\mathrm{SLN_{large}}\text{-}\mathrm{Kr2_{it}}\)</td>
+                            <td class="transcript">माध्यम कारिता के सबसे रोमांचक और तनावपूर्ण बीड्स में से एक पर रिपोर्टिंग</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{Whisper\text{-}Large\text{-}v3}\,(\mathrm{Decoder\,only\,FT})\)</td>
+                            <td class="transcript">पत्रकारिता के सबसे रोमांचक और तनाफून बीट्स में से एक पर रिपोर्टिंग</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Sample 4 -->
+        <div class="sample-section">
+            <div class="sample-header">Sample 4</div>
+            <div class="audio-container">
+                <audio controls>
+                    <source src="844424930708239-329-f.wav" type="audio/wav">
+                    Your browser does not support the audio element.
+                </audio>
+                
+                <div class="ground-truth-box">
+                    <div class="gt-label">Ground Truth</div>
+                    <div class="gt-text">माता चिंतपूर्णी जी जाने वाले श्रद्धालु भी होशियारपुर फूड स्ट्रीट का आनंद ले पाएंगे</div>
+                </div>
+                
+                <div class="predictions-label">Model Predictions</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Prediction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="model-highlight">
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}}\)</td>
+                            <td class="transcript">माता चिंतपूर्णी जी जाने वाले श्रद्धालु भी होशियारपुर फूड स्ट्रीट का आनंद ले पाएंगे</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}} + \mathrm{LoRA}\)</td>
+                            <td class="transcript">माता चिंतपूर्णी जी जाने वाले श्रद्धालु भी होशियारपुर फूड स्ट्रीट का आनंद ले पाएंगे</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}} + \mathrm{Prefix\,Tuning}\)</td>
+                            <td class="transcript">माता चिंतपूर्णी जी जाने वाले श्रद्धालु भी हर्षयारपुर फूड स्ट्रीट का आनंद ले पाएंगे</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{WLV3}\text{-}\mathrm{SLN_{large}}\text{-}\mathrm{Kr2_{it}}\)</td>
+                            <td class="transcript">मां वैष्णो देवी जी जाने वाले श्रद्धालु भी खुद श्यारपुर फूड स्ट्रीट का आनंद ले पाएंगे</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{Whisper\text{-}Large\text{-}v3}\,(\mathrm{Decoder\,only\,FT})\)</td>
+                            <td class="transcript">माता चिन्तपुर नी जी जाने वाले श्रद्धालु भी को श्यारपुर फूड स्ट्रीट का आनंद ले पाएंगे</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Sample 5 -->
+        <div class="sample-section">
+            <div class="sample-header">Sample 5</div>
+            <div class="audio-container">
+                <audio controls>
+                    <source src="844424932919634-1202-f.wav" type="audio/wav">
+                    Your browser does not support the audio element.
+                </audio>
+                
+                <div class="ground-truth-box">
+                    <div class="gt-label">Ground Truth</div>
+                    <div class="gt-text">बढ़ती आबादी के कारण पानी की आवश्यकता बढ़ी है</div>
+                </div>
+                
+                <div class="predictions-label">Model Predictions</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Prediction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="model-highlight">
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}}\)</td>
+                            <td class="transcript">बढ़ती आबादी के कारण पानी की आवश्यकता बढ़ी है</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}} + \mathrm{LoRA}\)</td>
+                            <td class="transcript">बढ़ती आबादी के कारण पानी की आवश्यकता बढ़ी है</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{AdaSpeech_{large}} + \mathrm{Prefix\,Tuning}\)</td>
+                            <td class="transcript">बढ़ती आबादी के कारण पानी की आवश्यकता बढ़ी है</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{WLV3}\text{-}\mathrm{SLN_{large}}\text{-}\mathrm{Kr2_{it}}\)</td>
+                            <td class="transcript">बढ़ती आबादी की कांपनी की आवश्यकता बढ़ी है</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">\(\mathrm{Whisper\text{-}Large\text{-}v3}\,(\mathrm{Decoder\,only\,FT})\)</td>
+                            <td class="transcript">बढ़ती आबादी के घान पानी की आवश्यकता बढ़ी है</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // MathJax configuration for better rendering
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+</body>
+</html>
+
